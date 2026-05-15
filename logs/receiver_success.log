@@ -1,1 +1,15 @@
+============================================================
+FIT4012 - AES-CBC Socket Receiver Log
+============================================================
+[+] Đã nhận AES key và IV.
+AES Key Size: 16 bytes
+Key: 31313131313131313131313131313131
+IV: 32323232323232323232323232323232
 
+[+] Đã nhận ciphertext.
+Ciphertext Length: 48 bytes
+
+[+] Đã giải mã thành công.
+Plaintext Length: 34 bytes
+
+Bản tin gốc: Xin chao FIT4012 - Lab 6 AES Socket
