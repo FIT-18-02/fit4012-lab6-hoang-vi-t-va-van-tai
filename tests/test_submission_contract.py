@@ -71,11 +71,11 @@ def test_local_sender_receiver_roundtrip():
     """
     Full local integration test.
 
-    Test:
+    Verify:
     - TCP socket communication
     - AES-CBC encryption/decryption
-    - Key channel
-    - Data channel
+    - Key channel transmission
+    - Data channel transmission
     - Sender/Receiver integration
     """
 
@@ -204,6 +204,11 @@ def test_local_sender_receiver_roundtrip():
             in sender.stdout
         )
 
+        assert (
+            "AES Key Size:"
+            in sender.stdout
+        )
+
         # =========================
         # Validate receiver output
         # =========================
@@ -228,6 +233,16 @@ def test_local_sender_receiver_roundtrip():
             "Xin chao FIT4012 - "
             "local AES integration test"
             in full_receiver_output
+        )
+
+        # =========================
+        # Ensure no error output
+        # =========================
+
+        assert "[ERROR]" not in sender.stdout
+
+        assert "[ERROR]" not in (
+            full_receiver_output
         )
 
     finally:
