@@ -1,98 +1,198 @@
-# Threat Model - Lab 6 AES-CBC Socket
+# FIT4012 - Lab 6 - Hệ thống gửi và nhận dữ liệu mã hóa AES-CBC qua Socket
 
-## Thông tin nhóm
+Repo starter kit này dùng cho **Lab 6**: gửi và nhận dữ liệu mã hóa bằng **AES-CBC** qua **TCP socket**.
+
+Lab này kế thừa ý tưởng từ Lab 3 DES Socket, nhưng nâng cấp theo 2 hướng:
+
+1. Chuyển từ **DES-CBC** sang **AES-CBC**.
+2. Tách thành **2 kênh TCP**:
+   - `KEY_PORT`: kênh giả lập trao đổi AES key và IV.
+   - `DATA_PORT`: kênh gửi ciphertext.
+
+> Lưu ý quan trọng: kênh khóa trong bài này chỉ là mô phỏng học tập. Key và IV vẫn được gửi plaintext, vì vậy thiết kế này không an toàn để dùng trong hệ thống thật.
+
+---
+
+# Team members
 
 - Thành viên 1: Nguyễn Hoàng Việt - MSSV: 1871020654
 - Thành viên 2: Bùi Văn Tài - MSSV: 1871020515
 
 ---
 
-## Assets
+# Task division
 
-Các tài sản cần được bảo vệ trong hệ thống gồm:
+- Thành viên 1 phụ trách chính:
+  - Xây dựng receiver
+  - Giải mã AES-CBC
+  - Xử lý dữ liệu nhận và ghi output
 
-- Plaintext trước khi mã hóa.
-- AES key dùng để mã hóa và giải mã dữ liệu.
-- IV (Initialization Vector) của AES-CBC.
-- Ciphertext được truyền qua socket.
-- File đầu vào (`sample_input.txt`).
-- File đầu ra (`sample_output.txt`).
-- Các file log trong thư mục `logs/`.
-- Tính toàn vẹn và tính bí mật của dữ liệu truyền qua mạng.
+- Thành viên 2 phụ trách chính:
+  - Xây dựng sender
+  - Mã hóa AES-CBC
+  - Gửi key/IV và ciphertext qua socket
 
----
-
-## Attacker model
-
-Đối tượng tấn công có thể:
-
-- Nghe lén mạng LAN và bắt gói tin TCP.
-- Đọc dữ liệu truyền trên key channel và data channel.
-- Sửa đổi ciphertext trước khi Receiver giải mã.
-- Replay lại packet cũ để gửi nhiều lần.
-- Đọc file log nếu hệ thống lưu log không an toàn.
-- Giả mạo Sender để gửi dữ liệu độc hại đến Receiver.
-
-Kẻ tấn công không cần quyền quản trị hệ thống nhưng có khả năng truy cập mạng nội bộ hoặc môi trường chạy demo.
+- Phần làm chung:
+  - Viết test
+  - Viết log minh chứng
+  - Hoàn thiện report và threat model
+  - Kiểm thử sender-receiver local
 
 ---
 
-## Threats
+# Demo roles
 
-### 1. Key disclosure
+- Demo Sender / kênh khóa / log gửi:
+  - Bùi Văn Tài
 
-AES key và IV được gửi plaintext qua `KEY_PORT`, nên kẻ tấn công có thể bắt gói tin và lấy được key để giải mã toàn bộ dữ liệu.
+- Demo Receiver / kênh dữ liệu / giải mã:
+  - Nguyễn Hoàng Việt
 
-### 2. Ciphertext tampering
-
-Kẻ tấn công có thể sửa đổi ciphertext trong quá trình truyền làm Receiver giải mã sai hoặc gây lỗi dữ liệu.
-
-### 3. Replay attack
-
-Một packet ciphertext cũ có thể bị gửi lại nhiều lần vì hệ thống chưa kiểm tra timestamp hoặc nonce.
-
-### 4. Log leakage
-
-Nếu key, IV hoặc plaintext được ghi vào log, dữ liệu nhạy cảm có thể bị lộ khi attacker đọc file log.
-
-### 5. No authentication
-
-Receiver chưa xác thực danh tính Sender nên attacker có thể giả mạo Sender để gửi dữ liệu không hợp lệ.
+- Cả hai cùng trả lời threat model và ethics:
+  - Nguyễn Hoàng Việt
+  - Bùi Văn Tài
 
 ---
 
-## Mitigations
+# Mục tiêu học tập
 
-### 1. Sử dụng cơ chế trao đổi khóa an toàn
+Sau bài lab này, sinh viên có thể:
 
-Trong hệ thống thực tế không nên gửi AES key plaintext. Có thể dùng TLS hoặc Diffie-Hellman để trao đổi khóa an toàn.
-
-### 2. Sử dụng AES-GCM
-
-AES-GCM cung cấp cả mã hóa và xác thực dữ liệu, giúp phát hiện ciphertext bị sửa đổi.
-
-### 3. Không lưu key thật vào log
-
-Chỉ ghi log thông tin cần thiết phục vụ debug, tránh lưu AES key hoặc plaintext thật.
-
-### 4. Thêm nonce hoặc timestamp
-
-Mỗi gói tin nên có nonce hoặc timestamp để giảm nguy cơ replay attack.
-
-### 5. Xác thực Sender
-
-Receiver nên kiểm tra danh tính Sender bằng token, certificate hoặc chữ ký số trước khi nhận dữ liệu.
+- Mô tả được luồng Sender/Receiver qua TCP socket.
+- Phân biệt được kênh khóa và kênh dữ liệu.
+- Cài đặt được AES-CBC với key, IV và PKCS#7 padding.
+- Thiết kế được header độ dài cho dữ liệu truyền qua socket.
+- Viết test cho các tình huống đúng và sai.
+- Nhận diện được điểm yếu của việc gửi key/IV plaintext.
 
 ---
 
-## Residual risks
+# Cấu trúc repo
 
-Dù đã có một số biện pháp giảm thiểu, hệ thống vẫn còn nhiều rủi ro:
+```text
+.
+├── aes_socket_utils.py
+├── sender.py
+├── receiver.py
+├── requirements.txt
+├── sample_input.txt
+├── sample_output.txt
+├── report-1page.md
+├── threat-model-1page.md
+├── peer-review-response.md
+├── logs/
+├── tests/
+└── .github/workflows/ci.yml
+Protocol
+1. Key channel
 
-- Key channel trong bài lab chỉ là mô phỏng và chưa an toàn.
-- Chưa sử dụng TLS để bảo vệ dữ liệu truyền qua mạng.
-- Hệ thống chưa có cơ chế chống replay hoàn chỉnh.
-- Chưa có xác thực mạnh giữa Sender và Receiver.
-- AES-CBC không tự bảo vệ tính toàn vẹn dữ liệu nếu không kết hợp cơ chế xác thực riêng.
+Sender gửi AES key và IV qua KEY_PORT.
 
-Vì vậy hệ thống này chỉ phù hợp cho mục đích học tập và demo nội bộ, không phù hợp triển khai trong môi trường thực tế.
+[key_length: 4 bytes][key: 16 hoặc 32 bytes][iv: 16 bytes]
+2. Data channel
+
+Sender gửi ciphertext qua DATA_PORT.
+
+[ciphertext_length: 4 bytes][ciphertext: N bytes]
+Cài đặt môi trường
+Linux / macOS
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+Windows PowerShell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Cài đặt thư viện
+
+Dự án sử dụng thư viện:
+
+pycryptodome
+pytest
+
+Cài đặt nhanh:
+
+pip install -r requirements.txt
+Chạy demo local
+Terminal 1 - Receiver
+RECEIVER_HOST=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 python receiver.py
+Terminal 2 - Sender
+SERVER_IP=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 MESSAGE="Xin chao FIT4012 - Lab 6 AES Socket" python sender.py
+Chạy có log minh chứng
+Terminal 1
+RECEIVER_HOST=127.0.0.1 \
+DATA_PORT=6000 \
+KEY_PORT=6001 \
+RECEIVER_LOG_FILE=logs/receiver_success.log \
+OUTPUT_FILE=sample_output.txt \
+python receiver.py
+Terminal 2
+SERVER_IP=127.0.0.1 \
+DATA_PORT=6000 \
+KEY_PORT=6001 \
+MESSAGE="Xin chao FIT4012 - Lab 6 AES Socket" \
+SENDER_LOG_FILE=logs/sender_success.log \
+python sender.py
+Gửi dữ liệu từ file
+Terminal 1
+RECEIVER_HOST=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 OUTPUT_FILE=sample_output.txt python receiver.py
+Terminal 2
+SERVER_IP=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 INPUT_FILE=sample_input.txt python sender.py
+Chạy test
+pytest -q
+Các test chính
+
+Dự án có các test sau:
+
+Test AES padding
+Test encrypt/decrypt AES-CBC
+Test key channel
+Test data channel
+Test wrong key
+Test tamper ciphertext
+Test sender-receiver local
+Deliverables bắt buộc
+README.md
+sender.py
+receiver.py
+aes_socket_utils.py
+tests/
+logs/
+report-1page.md
+threat-model-1page.md
+sample_input.txt
+sample_output.txt
+Submission contract cho CI
+
+CI sẽ kiểm tra:
+
+Có đủ file bắt buộc.
+Không còn import DES.
+Có sử dụng AES.
+Có ít nhất 6 test.
+Có test padding.
+Có test key channel.
+Có test data channel.
+Có test wrong key.
+Có test tamper.
+Có test local sender-receiver.
+README có thông tin nhóm 2 người.
+Các file báo cáo không còn TODO_STUDENT.
+Có ít nhất 1 file log thật trong logs/.
+Ethics & Safe use
+Chỉ chạy demo trên máy cá nhân, VM hoặc mạng nội bộ phục vụ học tập.
+Không quét cổng hoặc thử nghiệm trên hệ thống không được phép.
+Không dùng dữ liệu cá nhân thật hoặc dữ liệu nhạy cảm để demo.
+Không trình bày hệ thống này như một giải pháp an toàn sẵn sàng triển khai thực tế.
+Nếu tham khảo code hoặc tài liệu, phải ghi nguồn rõ ràng.
+Hạn chế của hệ thống
+
+Hệ thống vẫn còn nhiều hạn chế bảo mật:
+
+AES key và IV được gửi plaintext.
+Chưa sử dụng TLS.
+Chưa có xác thực Sender.
+Chưa chống replay attack hoàn chỉnh.
+AES-CBC chưa tự bảo vệ tính toàn vẹn dữ liệu.
+
+Vì vậy hệ thống chỉ phù hợp cho mục đích học tập và demo nội bộ.
