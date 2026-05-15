@@ -374,3 +374,25 @@ def recv_exact(
         received += len(chunk)
 
     return b"".join(chunks)
+
+
+# =========================
+# Compatibility aliases
+# =========================
+
+# Alias expected by starter tests
+HEADER_SIZE = LENGTH_HEADER_SIZE
+
+
+def build_packet(cipher_bytes: bytes) -> bytes:
+    """
+    Compatibility wrapper for tests.
+    """
+    return build_data_packet(cipher_bytes)
+
+
+def parse_header(header: bytes) -> int:
+    """
+    Compatibility wrapper for tests.
+    """
+    return parse_length_header(header)
