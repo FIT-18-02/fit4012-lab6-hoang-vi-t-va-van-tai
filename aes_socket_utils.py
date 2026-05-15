@@ -5,20 +5,19 @@ from typing import Tuple
 from Crypto.Cipher import AES
 
 # =========================
-# AES configuration
+# AES Configuration
 # =========================
 
 BLOCK_SIZE = 16
-
-# Header sizes
 HEADER_SIZE = 4
 KEY_HEADER_SIZE = 4
-
-# AES IV size
 IV_SIZE = 16
 
-# Valid AES key sizes
 VALID_KEY_SIZES = (16, 32)
+
+# Compatibility aliases
+LENGTH_HEADER_SIZE = HEADER_SIZE
+KEY_LENGTH_HEADER_SIZE = KEY_HEADER_SIZE
 
 
 # =========================
@@ -26,9 +25,6 @@ VALID_KEY_SIZES = (16, 32)
 # =========================
 
 def pad(data: bytes) -> bytes:
-    """
-    Apply PKCS#7 padding.
-    """
 
     if data is None:
         raise ValueError("Data cannot be None.")
@@ -41,9 +37,6 @@ def pad(data: bytes) -> bytes:
 
 
 def unpad(data: bytes) -> bytes:
-    """
-    Remove PKCS#7 padding.
-    """
 
     if not data:
         raise ValueError(
@@ -71,15 +64,12 @@ def unpad(data: bytes) -> bytes:
 
 
 # =========================
-# AES Key / IV Utilities
+# AES Key / IV
 # =========================
 
 def generate_key_iv(
     key_size: int = 16,
 ) -> Tuple[bytes, bytes]:
-    """
-    Generate AES key and IV.
-    """
 
     if key_size not in VALID_KEY_SIZES:
         raise ValueError(
@@ -96,9 +86,6 @@ def validate_key_iv(
     key: bytes,
     iv: bytes,
 ) -> None:
-    """
-    Validate AES key and IV.
-    """
 
     if len(key) not in VALID_KEY_SIZES:
         raise ValueError(
@@ -121,16 +108,12 @@ def encrypt_aes_cbc(
     iv: bytes | None = None,
     key_size: int = 16,
 ) -> Tuple[bytes, bytes, bytes]:
-    """
-    Encrypt plaintext using AES-CBC.
-    """
 
     if plaintext is None:
         raise ValueError(
             "Plaintext cannot be None."
         )
 
-    # Auto-generate key and IV
     if key is None or iv is None:
         key, iv = generate_key_iv(
             key_size
@@ -158,9 +141,6 @@ def decrypt_aes_cbc(
     iv: bytes,
     ciphertext: bytes,
 ) -> bytes:
-    """
-    Decrypt AES-CBC ciphertext.
-    """
 
     validate_key_iv(key, iv)
 
@@ -198,10 +178,6 @@ def build_key_packet(
     key: bytes,
     iv: bytes,
 ) -> bytes:
-    """
-    Build key packet:
-    [key_length][key][iv]
-    """
 
     validate_key_iv(key, iv)
 
@@ -215,9 +191,6 @@ def build_key_packet(
 def parse_key_packet(
     packet: bytes,
 ) -> Tuple[bytes, bytes]:
-    """
-    Parse key packet.
-    """
 
     if len(packet) < (
         KEY_HEADER_SIZE + IV_SIZE
@@ -256,8 +229,6 @@ def parse_key_packet(
         key_end:key_end + IV_SIZE
     ]
 
-    validate_key_iv(key, iv)
-
     return key, iv
 
 
@@ -268,10 +239,6 @@ def parse_key_packet(
 def build_packet(
     ciphertext: bytes,
 ) -> bytes:
-    """
-    Build data packet:
-    [ciphertext_length][ciphertext]
-    """
 
     if len(ciphertext) == 0:
         raise ValueError(
@@ -290,9 +257,6 @@ def build_packet(
 def parse_header(
     header: bytes,
 ) -> int:
-    """
-    Parse 4-byte length header.
-    """
 
     if len(header) != HEADER_SIZE:
         raise ValueError(
@@ -312,15 +276,9 @@ def parse_header(
     return length
 
 
-# =========================
 # Compatibility aliases
-# =========================
-
 build_data_packet = build_packet
 parse_length_header = parse_header
-
-LENGTH_HEADER_SIZE = HEADER_SIZE
-KEY_LENGTH_HEADER_SIZE = KEY_HEADER_SIZE
 
 
 # =========================
@@ -331,9 +289,6 @@ def recv_exact(
     conn,
     n: int,
 ) -> bytes:
-    """
-    Receive exactly n bytes.
-    """
 
     if n <= 0:
         raise ValueError(
