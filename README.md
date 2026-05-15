@@ -83,3 +83,134 @@ Sau bài lab này, sinh viên có thể:
 ├── logs/
 ├── tests/
 └── .github/workflows/ci.yml
+Protocol
+1. Key channel
+
+Sender gửi AES key và IV qua KEY_PORT.
+
+[key_length: 4 bytes][key: 16 hoặc 32 bytes][iv: 16 bytes]
+2. Data channel
+
+Sender gửi ciphertext qua DATA_PORT.
+
+[ciphertext_length: 4 bytes][ciphertext: N bytes]
+Cài đặt môi trường
+Linux / macOS
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+Windows PowerShell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Cài đặt thư viện
+
+Dự án sử dụng thư viện:
+
+pycryptodome
+pytest
+
+Cài đặt nhanh:
+
+pip install -r requirements.txt
+Chạy demo local
+Terminal 1 - Receiver
+RECEIVER_HOST=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 python receiver.py
+Terminal 2 - Sender
+SERVER_IP=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 MESSAGE="Xin chao FIT4012 - Lab 6 AES Socket" python sender.py
+Chạy có log minh chứng
+Terminal 1
+RECEIVER_HOST=127.0.0.1 \
+DATA_PORT=6000 \
+KEY_PORT=6001 \
+RECEIVER_LOG_FILE=logs/receiver_success.log \
+OUTPUT_FILE=sample_output.txt \
+python receiver.py
+Terminal 2
+SERVER_IP=127.0.0.1 \
+DATA_PORT=6000 \
+KEY_PORT=6001 \
+MESSAGE="Xin chao FIT4012 - Lab 6 AES Socket" \
+SENDER_LOG_FILE=logs/sender_success.log \
+python sender.py
+Gửi dữ liệu từ file
+Terminal 1
+RECEIVER_HOST=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 OUTPUT_FILE=sample_output.txt python receiver.py
+Terminal 2
+SERVER_IP=127.0.0.1 DATA_PORT=6000 KEY_PORT=6001 INPUT_FILE=sample_input.txt python sender.py
+Chạy test
+pytest -q
+Các test chính
+
+Dự án có các test sau:
+
+Test AES padding
+Test encrypt/decrypt AES-CBC
+Test key channel
+Test data channel
+Test wrong key
+Test tamper ciphertext
+Test sender-receiver local
+Deliverables bắt buộc
+README.md
+sender.py
+receiver.py
+aes_socket_utils.py
+tests/
+logs/
+report-1page.md
+threat-model-1page.md
+sample_input.txt
+sample_output.txt
+Submission contract cho CI
+
+CI sẽ kiểm tra:
+
+Có đủ file bắt buộc.
+Không còn import DES.
+Có sử dụng AES.
+Có ít nhất 6 test.
+Có test padding.
+Có test key channel.
+Có test data channel.
+Có test wrong key.
+Có test tamper.
+Có test local sender-receiver.
+README có thông tin nhóm 2 người.
+Các file báo cáo không còn TODO_STUDENT.
+Có ít nhất 1 file log thật trong logs/.
+Ethics & Safe use
+Chỉ chạy demo trên máy cá nhân, VM hoặc mạng nội bộ phục vụ học tập.
+Không quét cổng hoặc thử nghiệm trên hệ thống không được phép.
+Không dùng dữ liệu cá nhân thật hoặc dữ liệu nhạy cảm để demo.
+Không trình bày hệ thống này như một giải pháp an toàn sẵn sàng triển khai thực tế.
+Nếu tham khảo code hoặc tài liệu, phải ghi nguồn rõ ràng.
+Hạn chế của hệ thống
+
+Hệ thống vẫn còn nhiều hạn chế bảo mật:
+
+AES key và IV được gửi plaintext.
+Chưa sử dụng TLS.
+Chưa có xác thực Sender.
+Chưa chống replay attack hoàn chỉnh.
+AES-CBC chưa tự bảo vệ tính toàn vẹn dữ liệu.
+
+Vì vậy hệ thống chỉ phù hợp cho mục đích học tập và demo nội bộ.
+
+Bài học chính
+
+Một hệ thống có mã hóa chưa chắc đã là một hệ thống an toàn.
+
+AES-CBC giúp che nội dung plaintext, nhưng chưa tự động đảm bảo:
+
+Xác thực
+Toàn vẹn dữ liệu
+Chống replay
+Bảo vệ khóa mã hóa
+
+Muốn xây dựng hệ thống an toàn thực tế cần kết hợp:
+
+TLS
+Xác thực hai bên
+Secure key exchange
+AEAD như AES-GCM
